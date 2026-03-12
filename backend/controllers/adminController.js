@@ -1,10 +1,10 @@
 //API for adding doctor
 
-import validator from "validator"
-import bcrypt from "bcrypt"
+import validator from "validator";
+import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
-import {v2 as cloudinary} from "cloudinary"
-import jwt from "jsonwebtoken"
+import { v2 as cloudinary } from "cloudinary";
+import jwt from "jsonwebtoken";
 
 const addDoctor = async (req, res) => {
   try {
@@ -88,23 +88,34 @@ const addDoctor = async (req, res) => {
 
 //API for loginAdmin
 
-const loginAdmin = async (req,res) => {
+const loginAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
-    if(email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD){
-      return res
-      .json({
+    if (
+      email !== process.env.ADMIN_EMAIL ||
+      password !== process.env.ADMIN_PASSWORD
+    ) {
+      return res.json({
         success: false,
-        message: "Invalid credentials "
-      })
+        message: "Invalid credentials ",
+      });
     }
-    
-    const token = jwt.sign(email+password,process.env.JWT_SECRET)
-    res.json({success: true,token})
 
+    const token = jwt.sign(email + password, process.env.JWT_SECRET);
+    res.json({ success: true, token });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
-}
-export {addDoctor,loginAdmin}
+};
+
+const allDoctors = async (req, res) => {
+  try {
+    const doctors = await doctorModel.find({}).select("-password");
+    res.json({ success: true, doctors });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { addDoctor, loginAdmin, allDoctors };
