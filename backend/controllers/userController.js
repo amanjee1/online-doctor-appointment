@@ -236,8 +236,42 @@ const listAppointment = async (req,res) => {
         res.json({success: true, appointments})
 
     } catch (error) {
-        
+        console.log(error)
+        return res.json({success: false, message: error.message})
     }
 }
 
-export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment }
+// API to cancel an appointment
+
+const cancelAppointment = async (req,res) => {
+
+    try {
+        
+        const userId = req.userId
+        const { doctorId, slotDate, slotTime } = req.body
+        
+        const appointment = await appointmentModel.findOne({doctorId,userId,slotDate,slotTime})
+        const appointmentId = appointment._id
+
+        await appointmentModel.findByIdAndUpdate(
+            appointmentId,
+            {
+                $set: {
+                    cancelled : true
+                }
+            },
+            {
+                new : true
+            }
+        )
+
+        return res.json({success: true, message: "Appointment cancelled"})
+
+    } catch (error) {
+        console.log(error)
+        return res.json({success: false, message: error.message})
+    }
+
+}
+
+export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment }
