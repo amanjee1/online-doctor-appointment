@@ -5,6 +5,8 @@ import jwt  from 'jsonwebtoken'
 import { v2 as cloudinary } from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
+import razorpay from 'razorpay'
+
 //API to register user
 const registerUser = async (req,res) => {
     try {
@@ -231,7 +233,7 @@ const listAppointment = async (req,res) => {
     try {
         
         const userId = req.userId
-        const appointments = await appointmentModel.find({userId})
+        const appointments = await (await appointmentModel.find({ userId })).reverse()
 
         res.json({success: true, appointments})
 
@@ -248,23 +250,46 @@ const cancelAppointment = async (req,res) => {
     try {
         
         const userId = req.userId
-        const { doctorId, slotDate, slotTime } = req.body
+        const { appointmentId } = req.body
         
-        const appointment = await appointmentModel.findOne({doctorId,userId,slotDate,slotTime})
-        const appointmentId = appointment._id
+        const appointmentData = await appointmentModel.findById(appointmentId)
 
-        await appointmentModel.findByIdAndUpdate(
+        if(appointmentData.userId !== userId){
+            res.json({success: false, message: 'Unauthorized action'})
+        }
+
+        await appointmentModel.findByIdAndUpdate
+        (
             appointmentId,
             {
                 $set: {
-                    cancelled : true
+                    cancelled: true
                 }
             },
             {
-                new : true
+                new: true
             }
         )
 
+        const {doctorId, slotDate, slotTime} = appointmentData
+
+        const doctorData = await doctorModel.findById(doctorId)
+
+        let slots_booked = doctorData.slots_booked
+
+        slots_booked[slotDate] = slots_booked[slotDate].filter((item) => item !== slotTime)
+
+        await doctorModel.findByIdAndUpdate(
+            doctorId,
+            {
+                $set: {
+                    slots_booked 
+                }
+            },
+            {
+                new: true
+            }
+        )
         return res.json({success: true, message: "Appointment cancelled"})
 
     } catch (error) {
@@ -274,4 +299,37 @@ const cancelAppointment = async (req,res) => {
 
 }
 
-export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment }
+const razorpayInstance = new razorpay({
+    key_id:process.env.RAZORPAY_KEY_ID,
+    key_secret:process.env.RAZORPAY_KEY_SECRET
+})
+
+// API to make payment of appointment using razorpay
+
+const paymentRazorpar = async (req,res) => {
+    try {
+        const { appointmentId } = req.body
+
+        const appointmentData = await appointmentModel.findById(appointmentId)
+
+        if(!appointmentData || appointmentData.cancelled){
+            return res.json({success: false, message:"Appointment cancelled or not found"})
+        }
+
+        // creating options for razorpay payment
+        const options = {
+            amount: appointmentData.amount * 100, 
+            currency: process.env.CURRENCY,
+            receipt: appointmentId,
+        }
+
+        // creation of an order
+        const order = await razorpayInstance.orders.create(options)
+
+        res.json({success: true, order})
+    } catch (error) {
+        console.log(error)
+        return res.json({success: false, message: error.message})
+    }
+}
+export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpar }
