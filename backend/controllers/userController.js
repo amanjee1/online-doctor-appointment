@@ -332,4 +332,96 @@ const paymentRazorpar = async (req,res) => {
         return res.json({success: false, message: error.message})
     }
 }
-export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpar }
+
+
+const uploadReport = async (req, res) => {
+  try {
+    const userId = req.userId
+
+    const { title, type } = req.body
+
+    const file = req.file
+
+    if (!file) {
+      return res.json({ success: false, message: 'No file uploaded' })
+    }
+
+    const result = await cloudinary.uploader.upload(file.path, {
+      resource_type: 'auto',
+    })
+
+    await userModel.findByIdAndUpdate(userId, {
+      $push: {
+        reports: {
+          title,
+          type,
+          fileUrl: result.secure_url
+        }
+      }
+    })
+
+    res.json({
+      success: true,
+      message: 'Report uploaded successfully'
+    })
+  } catch (error) {
+    console.log(error)
+    res.json({ success: false, message: error.message })
+  }
+}
+
+const rateDoctor = async (req, res) => {
+  try {
+    const userId = req.userId
+    const { appointmentId, doctorId, rating } = req.body
+
+    const appointment = await appointmentModel.findById(appointmentId)
+
+    if (!appointment) {
+      return res.json({ success: false, message: 'Appointment not found' })
+    }
+
+    if (appointment.userId !== userId) {
+      return res.json({ success: false, message: 'Unauthorized' })
+    }
+
+    if (!appointment.isCompleted) {
+      return res.json({
+        success: false,
+        message: 'You can only rate completed appointments'
+      })
+    }
+
+    if (appointment.isRated) {
+      return res.json({
+        success: false,
+        message: 'Doctor already rated for this appointment'
+      })
+    }
+
+    const doctor = await doctorModel.findById(doctorId)
+
+    const total = doctor.rating * doctor.numberOfRatings
+    const newNumberOfRatings = doctor.numberOfRatings + 1
+    const newRating = (total + rating) / newNumberOfRatings
+
+    await doctorModel.findByIdAndUpdate(doctorId, {
+      rating: Number(newRating.toFixed(1)),
+      numberOfRatings: newNumberOfRatings
+    })
+
+    appointment.isRated = true
+    appointment.patientRating = rating
+    await appointment.save()
+
+    res.json({
+      success: true,
+      message: 'Rating submitted successfully'
+    })
+  } catch (error) {
+    console.log(error)
+    res.json({ success: false, message: error.message })
+  }
+}
+
+export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpar,uploadReport,rateDoctor }

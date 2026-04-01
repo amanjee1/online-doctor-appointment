@@ -1,24 +1,49 @@
 import { Router } from "express";
-import { bookAppointment, cancelAppointment, getProfile, listAppointment, loginUser, paymentRazorpar, registerUser, updateProfile } from "../controllers/userController.js";
+import {
+  bookAppointment,
+  cancelAppointment,
+  getProfile,
+  listAppointment,
+  loginUser,
+  paymentRazorpar,
+  registerUser,
+  updateProfile,
+  uploadReport,
+  rateDoctor
+} from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import { upload } from "../middlewares/multer.js";
 
-const userRouter = Router()
+const userRouter = Router();
 
-userRouter.post('/register',registerUser)
+userRouter.post("/register", registerUser);
 
-userRouter.post('/login',loginUser)
+userRouter.post("/login", loginUser);
 
-userRouter.get('/get-profile',authUser,getProfile)
+userRouter.get("/get-profile", authUser, getProfile);
 
-userRouter.post('/update-profile',upload.single('image'), authUser ,updateProfile)
+userRouter.post(
+  "/update-profile",
+  upload.single("image"),
+  authUser,
+  updateProfile,
+);
 
-userRouter.post('/book-appointment',authUser,bookAppointment)
+userRouter.post(
+  "/upload-report",
+  authUser,
+  upload.single("report"),
+  uploadReport,
+);
 
-userRouter.get('/appointments',authUser,listAppointment)
+userRouter.post("/book-appointment", authUser, bookAppointment);
 
-userRouter.post('/cancel-appointment',authUser,cancelAppointment)
+userRouter.get("/appointments", authUser, listAppointment);
 
-userRouter.post('/payment-razorpay',authUser,paymentRazorpar)
+userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 
-export default userRouter
+userRouter.post("/payment-razorpay", authUser, paymentRazorpar);
+
+userRouter.post('/rate-doctor', authUser, rateDoctor)
+
+export default userRouter;

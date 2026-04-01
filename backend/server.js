@@ -28,6 +28,7 @@ app.use('/api/doctor',doctorRouter)
 // localhost:4000/api/doctor/list
 
 app.use('/api/user',userRouter)
+
 app.get('/',(req,res)=>{
     res.send('API WORKING')
 })

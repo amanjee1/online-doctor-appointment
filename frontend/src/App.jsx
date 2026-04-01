@@ -3,6 +3,7 @@ import { Route,Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import MyProfile from './pages/MyProfile'
 import MyAppointments from './pages/MyAppointments'
+import MyReports from './pages/MyReports'
 import Appointment from './pages/Appointment'
 import NavBar from './components/NavBar'
 import Doctors from './pages/Doctors'
@@ -27,6 +28,7 @@ const App = () => {
         <Route path='/contact' element={<Contact />} />
         <Route path='/my-profile' element={<MyProfile />} />
         <Route path='/my-appointments' element={<MyAppointments />} />
+        <Route path='/my-reports' element={<MyReports />} />
         <Route path='/appointment/:docId' element={<Appointment />} />
       </Routes>
       <Footer />

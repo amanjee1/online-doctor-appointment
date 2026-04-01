@@ -105,6 +105,22 @@ const Doctors = () => {
             >
               <img className="bg-blue-50" src={item.image} alt="" />
               <div className="p-4">
+                <div className="flex items-center gap-2 text-sm mt-2">
+                  {item.numberOfRatings > 0 ? (
+                    <>
+                      <span className="text-yellow-500">⭐</span>
+                      <span className="text-gray-700 font-medium">
+                        {item.rating.toFixed(1)}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-500">
+                        {item.numberOfRatings} reviews
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-gray-400 text-sm">⭐ New</span>
+                  )}
+                </div>
                 <div
                   className={`flex items-center gap-2 text-sm text-center ${item.available ? "text-green-500" : "text-gray-500"} `}
                 >

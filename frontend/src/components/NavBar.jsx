@@ -15,7 +15,7 @@ const NavBar = () => {
     }
   return (
     <div className='flex item-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400'>
-        <img onClick={() => {navigate('/')}} className="w-44 cursor-pointer" src={assets.logo} alt=""/>
+        <img onClick={() => {navigate('/')}} className="h-10 w-44 cursor-pointer object-contain" src={assets.logo} alt=""/>
         <ul className='hidden md:flex items-start gap-5 font-medium'>
             <NavLink to='/'>
                 <li className='py-1'>HOME</li>
@@ -44,6 +44,7 @@ const NavBar = () => {
                         <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4">
                             <p onClick={() => navigate('my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
                             <p onClick={() => navigate('my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
+                            <p onClick={() => navigate('my-reports')} className='hover:text-black cursor-pointer'>My Reports</p>
                             <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
                         </div>
                     </div>
