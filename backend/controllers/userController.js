@@ -6,6 +6,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
 import razorpay from 'razorpay'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 //API to register user
 const registerUser = async (req,res) => {
@@ -424,4 +425,104 @@ const rateDoctor = async (req, res) => {
   }
 }
 
-export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpar,uploadReport,rateDoctor }
+// API to analyze symptoms and recommend a doctor specialty using AI
+const analyzeSymptoms = async (req, res) => {
+  try {
+    const { symptoms } = req.body
+
+    if (!symptoms || symptoms.trim().length === 0) {
+      return res.json({ success: false, message: 'Please describe your symptoms' })
+    }
+
+    // Check if API key exists
+    if (!process.env.GEMINI_API_KEY) {
+      console.log('❌ GEMINI_API_KEY is not set')
+      return res.json({ 
+        success: false, 
+        message: 'AI service not configured. Please use the specialty menu instead.' 
+      })
+    }
+
+    console.log('Analyzing symptoms:', symptoms.substring(0, 50) + '...')
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+
+    // Available specialties in our system
+    const availableSpecialties = [
+      'General physician',
+      'Gynecologist',
+      'Dermatologist',
+      'Pediatricians',
+      'Neurologist',
+      'Gastroenterologist'
+    ]
+
+    const prompt = `You are a medical assistant. A patient has described their symptoms. Based on the symptoms, recommend which specialist they should consult.
+
+Available specialists: ${availableSpecialties.join(', ')}
+
+Patient's symptoms: "${symptoms}"
+
+Respond ONLY with a JSON object in this format (no other text):
+{
+  "recommendedSpecialty": "one of the available specialists",
+  "confidence": 85,
+  "reasoning": "brief explanation of why this specialist"
+}
+
+IMPORTANT: 
+- Only recommend from the available specialists list
+- Confidence should be 0-100
+- Always return valid JSON`
+
+    try {
+      console.log('Sending to Gemini API...')
+      const result = await model.generateContent(prompt)
+      const responseText = result.response.text()
+      
+      console.log('Raw response:', responseText)
+
+      // Parse the JSON response
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        throw new Error('Invalid response format from AI')
+      }
+
+      const analysis = JSON.parse(jsonMatch[0])
+
+      // Validate the recommended specialty
+      if (!availableSpecialties.includes(analysis.recommendedSpecialty)) {
+        analysis.recommendedSpecialty = 'General physician' // Fallback
+      }
+
+      console.log('Analysis complete:', analysis)
+      
+      res.json({
+        success: true,
+        recommendedSpecialty: analysis.recommendedSpecialty,
+        confidence: analysis.confidence || 75,
+        reasoning: analysis.reasoning || 'Based on your symptoms, this specialist can help'
+      })
+    } catch (parseError) {
+      console.log('Parse error:', parseError.message)
+      // Fallback to General physician
+      res.json({
+        success: true,
+        recommendedSpecialty: 'General physician',
+        confidence: 60,
+        reasoning: 'Our AI system recommends starting with a general physician who can then refer you to a specialist if needed.'
+      })
+    }
+
+  } catch (error) {
+    console.log('Symptom analysis error:', error.message)
+    res.json({ 
+      success: false, 
+      message: 'Could not analyze symptoms. Please try again or use the specialty menu.' 
+    })
+  }
+}
+
+export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpar,uploadReport,rateDoctor,analyzeSymptoms }

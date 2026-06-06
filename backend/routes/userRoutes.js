@@ -9,7 +9,8 @@ import {
   registerUser,
   updateProfile,
   uploadReport,
-  rateDoctor
+  rateDoctor,
+  analyzeSymptoms
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import { upload } from "../middlewares/multer.js";
@@ -45,5 +46,7 @@ userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 userRouter.post("/payment-razorpay", authUser, paymentRazorpar);
 
 userRouter.post('/rate-doctor', authUser, rateDoctor)
+
+userRouter.post('/analyze-symptoms', authUser, analyzeSymptoms)
 
 export default userRouter;
