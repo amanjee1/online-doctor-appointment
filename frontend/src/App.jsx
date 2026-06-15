@@ -7,9 +7,9 @@ import MyReports from './pages/MyReports'
 import Appointment from './pages/Appointment'
 import NavBar from './components/NavBar'
 import Doctors from './pages/Doctors'
-import Login from './pages/login'
-import Contact from './pages/contact'
-import About from './pages/about'
+import Login from './pages/Login'
+import Contact from './pages/Contact'
+import About from './pages/About'
 import Footer from './components/Footer'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
