@@ -307,7 +307,7 @@ const razorpayInstance = new razorpay({
 
 // API to make payment of appointment using razorpay
 
-const paymentRazorpar = async (req,res) => {
+const paymentRazorpay = async (req,res) => {
     try {
         const { appointmentId } = req.body
 
@@ -334,6 +334,26 @@ const paymentRazorpar = async (req,res) => {
     }
 }
 
+// API to verify payment of razorpay
+const verifyRazorpay = async (req,res) => {
+    try {
+        
+        const {razorpay_order_id} = req.body
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+
+        if(orderInfo.status === 'paid') {
+            await appointmentModel.findByIdAndUpdate(orderInfo.receipt,{payment : true})
+            res.json({success:true, message: "Payment Successful"})
+        }
+        else {
+            res.json({success:false, message: "Payment failed"})
+        }
+
+    } catch (error) {
+        console.log(error)
+        return res.json({success: false, message: error.message})
+    }
+}
 
 const uploadReport = async (req, res) => {
   try {
@@ -525,4 +545,4 @@ IMPORTANT:
   }
 }
 
-export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpar,uploadReport,rateDoctor,analyzeSymptoms }
+export { registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,paymentRazorpay, verifyRazorpay, uploadReport,rateDoctor,analyzeSymptoms }

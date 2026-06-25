@@ -5,12 +5,13 @@ import {
   getProfile,
   listAppointment,
   loginUser,
-  paymentRazorpar,
+  paymentRazorpay,
   registerUser,
   updateProfile,
   uploadReport,
   rateDoctor,
-  analyzeSymptoms
+  analyzeSymptoms,
+  verifyRazorpay
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import { upload } from "../middlewares/multer.js";
@@ -43,7 +44,9 @@ userRouter.get("/appointments", authUser, listAppointment);
 
 userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 
-userRouter.post("/payment-razorpay", authUser, paymentRazorpar);
+userRouter.post("/payment-razorpay", authUser, paymentRazorpay);
+
+userRouter.post('/verifyRazorpay', authUser, verifyRazorpay)
 
 userRouter.post('/rate-doctor', authUser, rateDoctor)
 
